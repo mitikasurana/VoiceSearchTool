@@ -1,15 +1,25 @@
 const request = require('postman-request')
 
-const forecast = (latitude , longitude , callback ) => {
+const forecast = (filter_location ,filter_month, callback ) => {
+
+const month = getMonthFromString(filter_month)
+
+function getMonthFromString(mon){
+  var months = [
+      "january","february","march","april","may","june","july","august","september","october","november","december"
+  ]
+  console.log(months.indexOf(mon) + 1)
+  return (months.indexOf(mon) + 1)
+}
 
   const options = {
     method: 'GET',
     url: 'https://visual-crossing-weather.p.rapidapi.com/history',
     qs: {
-      startDateTime: '2020-04-08T00:00:00',
+      startDateTime: '2020-'+month+'-15T00:00:00',
       aggregateHours: '24',
-      location: 'goa,india',
-      endDateTime: '2020-04-08T00:00:00',
+      location: filter_location,
+      endDateTime: '2020-'+month+'-15T00:00:00',
       unitGroup: 'us',
       dayStartTime: '8:00:00',
       contentType: 'json',
@@ -23,27 +33,49 @@ const forecast = (latitude , longitude , callback ) => {
     }
   };
 
+    var temp = null;
+    var season = null;
+    var conditions = null;
     //request({url:url , json:true} , (error,response) => {
     request(options  , (error,response, body) => {
         if(error){
-            console.log ('Unable to connect to weather services!')
+
+          console.log('Unable to connect to weather services!')
+          return ('Unable to connect to weather services!')
+
         } else if(body.error){
+
           console.log('Unable to find location. Try another search.')
+          return ('Unable to find location. Try another search.')
+
         } else{
-          const temp = JSON.parse(body).locations[options.qs.location].values[0].temp
-	        console.log(temp)
-          console.log(JSON.parse(body).locations[options.qs.location].values[0].conditions)
+
+          temp = JSON.parse(body).locations[options.qs.location].values[0].temp
+	        console.log("Temperature:"+temp)
+          conditions = JSON.parse(body).locations[options.qs.location].values[0].conditions
+          console.log("Conditions:"+conditions)
+        
+
           if(temp<=60){
-            console.log('Winter')
+            season = "Winter"
           } else if(temp<76 && temp>60){
-            console.log('Fall')
+            season = "Fall"
           } else if(temp>=76 && temp>87){
-            console.log('Spring')
+            season = "Spring"
           } else{
-            console.log('Summer')
+            season = "Summer"
           }
+          console.log("Season:"+season)
         }
     })
+
+    const result = {
+      "temperature" : temp ,
+      "condition" : conditions ,
+      "season" : season
+    }
+
+    return result;
 }    
 
 module.exports = forecast

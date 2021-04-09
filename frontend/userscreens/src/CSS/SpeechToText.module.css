@@ -19,5 +19,5 @@
     cursor: pointer;
 }
 .button{
-    text-transform: lowercase;
+    padding: 30px;
 }

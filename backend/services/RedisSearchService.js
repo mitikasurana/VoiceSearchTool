@@ -15,56 +15,63 @@ const ef = require('../processor/ExtractFields');
  * and returns the best matched product objects.
  */
 
-const searchService = (query) => {
+class RedisSearchService {
+   
+    constructor (){
+        this.finalProducts = null;
+    }
 
-    const productList = dp.processData(dataset.data);
-    const finalProducts = [];
+    searchService=(query)=>{
 
-    //index the data
-    my_data.createIndex([
-        my_data.fieldDefinition.text('title', true),
-        my_data.fieldDefinition.text('link', true),
-        my_data.fieldDefinition.text('size', true),
-        my_data.fieldDefinition.text('brand', true),
-        my_data.fieldDefinition.text('dominant_material', true),
-        my_data.fieldDefinition.text('actual_color', true),
-        my_data.fieldDefinition.text('dominant_color', true),
-        my_data.fieldDefinition.text('product_type', true),
-        my_data.fieldDefinition.text('images', true),
-        my_data.fieldDefinition.text('body', true),
-        my_data.fieldDefinition.text('product_details', true),
-        my_data.fieldDefinition.text('complete_the_look', true),
-        my_data.fieldDefinition.text('type', true),
-        my_data.fieldDefinition.text('ideal_for', true),
-        my_data.fieldDefinition.text('specifications', true),
-        my_data.fieldDefinition.text('inventory',true)
-    ],
-        function (err) {
-            if (err) {
-                console.log('error1', err.message, err.stack);
-            }
-        })
-    productList.forEach((product, index) => {
-
-        //add items to index
-        console.log("PRO_INDEX: ",product,index);
-        my_data.add(`doc${index}`, product, function (err) {
-            if (err) {
-                console.log('error2', err.message, err.stack);
-            }
-        })
-    })
-
-    //search for a query 
-    my_data.search(query, function (err, results) {
-        if (err) {
-            console.log(err);
-        }
-        console.log(JSON.stringify(results));
-        finalProducts.push(ef.extract(results.results));
-    }).dropIndex();  
+        const productList = dp.processData(dataset.data);
     
-    return finalProducts;
+        //index the data
+        my_data.createIndex([
+            my_data.fieldDefinition.text('title', true),
+            my_data.fieldDefinition.text('link', true),
+            my_data.fieldDefinition.text('size', true),
+            my_data.fieldDefinition.text('brand', true),
+            my_data.fieldDefinition.text('dominant_material', true),
+            my_data.fieldDefinition.text('actual_color', true),
+            my_data.fieldDefinition.text('dominant_color', true),
+            my_data.fieldDefinition.text('product_type', true),
+            my_data.fieldDefinition.text('images', true),
+            my_data.fieldDefinition.text('body', true),
+            my_data.fieldDefinition.text('product_details', true),
+            my_data.fieldDefinition.text('complete_the_look', true),
+            my_data.fieldDefinition.text('type', true),
+            my_data.fieldDefinition.text('ideal_for', true),
+            my_data.fieldDefinition.text('specifications', true),
+            my_data.fieldDefinition.text('inventory',true)
+        ],
+            function (err) {
+                if (err) {
+                    console.log('error1', err.message, err.stack);
+                }
+            })
+        productList.forEach((product, index) => {
+    
+        //add items to index
+            // console.log("PRO_INDEX: ",product,index);
+        my_data.add(`doc${index}`, product, function (err) {
+                if (err) {
+                    console.log('error2', err.message, err.stack);
+                }
+            })
+        })
+    
+        //search for a query 
+        return new Promise( function(resolve, reject){
+            my_data.search(query, (err, results) => {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                }
+                // console.log(JSON.stringify(results));
+                resolve(ef.extract(results.results));
+    
+        }).dropIndex() 
+        })
+    }  
 }
-
-module.exports = { searchService }
+module.exports = {RedisSearchService};
