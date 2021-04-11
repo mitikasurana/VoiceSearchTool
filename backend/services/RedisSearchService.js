@@ -34,14 +34,14 @@ class RedisSearchService {
             my_data.fieldDefinition.text('dominant_material', true),
             my_data.fieldDefinition.text('actual_color', true),
             my_data.fieldDefinition.text('dominant_color', true),
-            my_data.fieldDefinition.text('product_type', true),
+            my_data.fieldDefinition.text('product_type', true,10.0),
             my_data.fieldDefinition.text('images', true),
-            my_data.fieldDefinition.text('body', true),
-            my_data.fieldDefinition.text('product_details', true),
+            my_data.fieldDefinition.text('body', true,1.0),
+            my_data.fieldDefinition.text('product_details', true,5.0),
             my_data.fieldDefinition.text('complete_the_look', true),
             my_data.fieldDefinition.text('type', true),
             my_data.fieldDefinition.text('ideal_for', true),
-            my_data.fieldDefinition.text('specifications', true),
+            my_data.fieldDefinition.text('specifications', true,2.0),
             my_data.fieldDefinition.text('inventory',true)
         ],
             function (err) {
