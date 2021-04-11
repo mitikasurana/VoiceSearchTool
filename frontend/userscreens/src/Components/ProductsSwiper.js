@@ -24,11 +24,10 @@ const styles ={
 const ProductsSwiper = (props) =>{
 
     const rectangle = <div className={styles.shape} />;
-    const body =  props.items.map((item,index) => {
-      return item.images.map((img) => (
-          <ProductCard title = {item.title} image = {img} body={item.body} style ={styles.slide}/>                                   
+    const body =  props.items.map((item) => {
+      return  (
+          <ProductCard title = {item.title} image = {item.images} body={item.body} style ={styles.slide}/>                                   
         )
-      )
     })
     return(
         <Container>

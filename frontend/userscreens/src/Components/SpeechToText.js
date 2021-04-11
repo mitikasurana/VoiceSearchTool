@@ -25,59 +25,55 @@ const useStyles = makeStyles((theme) => ({
     border: '2px solid #000',
     boxShadow: theme.shadows[5],
     padding: theme.spacing(2, 4, 3),
-    width : 700
+    width : 300
   },
 }));
 
 const SpeechToText = React.memo(() => {
 
-  const userQuery = [];
   const classes = useStyles();
   const [micOn , setMic] = useState(false);
   const [items, setItems] = useState(null);
+  const [userQuery,setQuery] = useState('');
   const [filterOn, setFilter] = useState(false);
   const [fetched, setFetched] = useState(false);
-  const [filterFetched ,setFilterFetched] = useState(false);
   const [filterItems, setFilterItems] = useState(null);
+  const [filterFetched ,setFilterFetched] = useState(false);
   const { transcript, resetTranscript} = useSpeechRecognition();
   const [voiceText , setText ] = useState("Hey there,  I am your MyntraMate...how can I help you ?");
 
   useEffect(() => {
     console.log("Started");
-  }, [items,filterItems]);
+  }, [filterItems,items]);
 
 
   if (!SpeechRecognition.browserSupportsSpeechRecognition()) {
     return null
   }
 
-  function doOnFilter(){
+  function doOnFilter() {
+
+    setFilter(true);
+
+    setText("Please tell the location");
+    setTimeout(()=>{
+      console.log(userQuery);
       resetTranscript();
-      setFilter(true);
-
-      
-      setMic(true);
-      setText("Please tell the place or location..")
-
-      setTimeout(function(){
-        setMic(false);
-        setText("Please tell the time..")
-        resetTranscript();
-        setMic(true);
-      },8000);
-
-      setTimeout(function(){
-        setMic(false);
-      },8000)
-
-      var n = userQuery.length;
-      console.log("ARGS_WEATHER: ",userQuery[n-2],userQuery[n-1])
-      const result = weather(userQuery[n-2],userQuery[n-1])
-      console.log(result);
-
-      // handleFilterSearch("wedding");
-
+      setText("Please tell the time");
+      setTimeout(()=>{
+              console.log("THIS IS INNER TIMEOUT");
+              resetTranscript();
+              var n = userQuery.length;
+              const result = weather(userQuery[n-2],userQuery[n-1]);
+              console.log(result);
+              setQuery(result.season);
+              SpeechRecognition.stopListening();
+              handleFilterSearch(userQuery);
+      },4000)
+    },4000);
+    
   }
+
 
   function handleFilterRemove(){
     setFilter(false);
@@ -91,24 +87,29 @@ const SpeechToText = React.memo(() => {
       SpeechRecognition.startListening({continuous:true});
     }
     else {
-      userQuery.push(transcript);
+      resetTranscript();
       SpeechRecognition.stopListening();
       console.log("Stopped Listening");
       if(!filterOn){
+        setQuery(transcript);
         handleSearch();
       }
       else{
-        // handleFilterSearch("summer");
+        console.log("THIS IS ELSE");
+        console.log(transcript);
+        var temp = userQuery;
+        var str = temp.concat(transcript);
+        console.log(str);
       }
-      
     }
     setMic(!micOn);
-
   }
 
   function handleFilterSearch(userQuery){
+    setText("Good things take time...Please wait");
+    userQuery  = transcript + " " + userQuery;
     if(userQuery !== null && userQuery !== ""){
-      const url = "http://127.0.0.1:8080/api/weatherfilter/results";
+      const url = "http://127.0.0.1:8080/api/results";
       const data = {command : userQuery}
       axios.get(url, {
         params:data
@@ -124,7 +125,7 @@ const SpeechToText = React.memo(() => {
   function handleSearch() {
     console.log(transcript);
     setText("Good things take time...Please wait");
-    userQuery.push(transcript);
+    // userQuery.push(transcript);
     if(transcript !== null && transcript !== ""){
       const url = "http://127.0.0.1:8080/api/results";
       const data = {command : transcript}
@@ -205,9 +206,10 @@ const SpeechToText = React.memo(() => {
             }}
           >
             <div className={classes.paper}>
-                  <ProductsSwiper  conditon={"Haze Cloudy"} season ={"summer"} items = {filterItems}/>
+                  <ProductsSwiper  items = {filterItems} season={"winter"} />
             </div>
         </Modal>
+  
       )}
       {
         fetched && (
