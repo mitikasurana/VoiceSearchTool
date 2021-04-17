@@ -2,11 +2,11 @@ const express = require('express');
 const cors = require('cors');
 const pyClient = require('./runToken');
 const dotenv = require('dotenv');
-dotenv.config()
+const getFQ = require('./utils/getFinalQuery');
 const { RedisSearchService } = require('./services/RedisSearchService');
-const words = require('./utils/SimilarWords').words;
 
 const app = express();
+dotenv.config();
 
 //use cors to allow cross origin resource sharing
 app.use(
@@ -20,54 +20,33 @@ app.use(express.json());
 
 // BASE-URL
 app.get('/', function (req, res) {
-    console.log("Server running");
-    return res.send('Search Results api');
+  console.log("Server running");
+  return res.send('Search Results api');
 });
 
-var similar_words ;
-
 // endpoint for returning results back to React server
-app.get('/api/results/', async (req,res)=> {
-   
-    const output = await pyClient.run(req.query.command);
-    var tokenList = output.split(" ");
+app.get('/api/results/', async (req, res) => {
 
-    console.log(tokenList);
+  var finalQuery = null;
 
-    const searchObj = new RedisSearchService();
+  console.log("requestQuery: ",req.query.command);
 
-    tokenList = tokenList.slice(0,tokenList.length - 1)
+  // calling the py client for returning tokens
+  const output = await pyClient.run(req.query.command)
+  var tokenList = output.split(" ");
+  tokenList = tokenList.slice(0, tokenList.length - 1);
+  console.log("tokenList: ", tokenList);
 
-    console.log(tokenList);
+  //getFinalQuery
+  await getFQ.getFinalQuery(tokenList).then((val) => { finalQuery = val });
+  console.log("finalQuery: ", finalQuery);
 
-    tokenList.forEach(async (keyword) => {
-      keyword = keyword.trim()
-      await new Promise(function(resolve,reject){
-        resolve(searchObj.searchService(keyword));
-      }).then((results)=>{
-        if(results === [] || results === undefined ){
-            similar_words = words[keyword];
-            console.log(similar_words);
-            res.send({"results":null , "options":similar_words})
-        }
-        else{
-          console.log(results);
-          res.send({"results": results , "options":null})
-        }
-      })
-    })
-
-})
-
-app.get('/api/weatherfilter/results/',async(req,res)=>{
-  
-    const searchObj = new RedisSearchService();
-    await new Promise(function(resolve,reject){
-      resolve(searchObj.searchService(req.query.command));
-    }).then((results)=>{
-          console.log(results);
-          res.send({"results": results});
-    })
+  //make Search to get results
+  const searchObj = new RedisSearchService();
+  searchObj.searchService(finalQuery.join("").toString()).then((results) => {
+    console.log("results: ", results);
+    res.send({ "results": results });
+  })
 
 })
 

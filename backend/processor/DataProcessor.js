@@ -14,7 +14,7 @@ const processData = (data) => {
             actual_color: (product.actual_color === undefined ? "" : product.actual_color),
             dominant_color: (product.dominant_color === undefined ? "" : product.dominant_color),
             product_type: (product.product_type === undefined ? "" : product.product_type),
-            images: product.images.split('|').toString(),
+            images: product.images.split('|')[0],
             body: (product.body === undefined ? "" : product.body),
             product_details: (product.product_details === undefined ? "" : product.product_details),
             complete_the_look: (product.complete_the_look === undefined ? "" : product.complete_the_look),
